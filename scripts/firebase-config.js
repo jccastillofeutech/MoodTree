@@ -12,5 +12,3 @@ const firebaseConfig = {
   const auth = firebase.auth();
   const db = firebase.firestore();
   const analytics = firebase.analytics ? firebase.analytics() : null;
-
-  export { auth, db };

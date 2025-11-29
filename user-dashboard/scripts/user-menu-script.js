@@ -1,7 +1,3 @@
-import { auth, db } from '../../scripts/firebase-config.js';
-import { doc, setDoc, getDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-
 document.addEventListener('DOMContentLoaded', () => {
     const today = new Date();
     const dateElements = document.querySelectorAll('.date');
@@ -51,6 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const commonLogoutHandler = (event) => {
         event.preventDefault();
+        const user = auth.currentUser;
+        if (user) {
+            sessionStorage.setItem('lastUserEmail', user.email);
+        }
         signOut(auth).then(() => {
             window.location.href = '../auth-pages/login.html';
         }).catch((error) => {
