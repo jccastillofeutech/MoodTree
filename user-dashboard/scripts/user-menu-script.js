@@ -1,3 +1,6 @@
+import { auth, db } from '../../scripts/firebase-config.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { doc, getDoc, setDoc, updateDoc, deleteField, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 document.addEventListener('DOMContentLoaded', () => {
     const today = new Date();
     const dateElements = document.querySelectorAll('.date');
@@ -67,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     if (document.body.id === 'dashboard-page') {
-        loadDashboardData();
+        onAuthStateChanged(auth, user => user && loadDashboardData(user));
     } else if (document.body.id === 'log-mood-page') {
         setupLogMoodPage();
     } else if (document.body.id === 'simulator-page') {
@@ -91,6 +94,65 @@ function updateUsernameDisplays(username) {
     } else if (mobileUsernameDisplay) {
         mobileUsernameDisplay.textContent = 'Guest';
     }
+}
+
+function loadDashboardData(user) {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayKey = `${year}-${month}-${day}`;
+
+    // Fetch today's mood log
+    const moodLogRef = doc(db, 'users', user.uid, 'mood_logs', todayKey);
+    getDoc(moodLogRef).then(docSnap => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            document.getElementById('mood-display-color').style.backgroundColor = data.moodColor || '#DDD';
+            document.getElementById('mood-display-name').textContent = data.moodName || 'NOT LOGGED';
+            document.getElementById('notes-display').textContent = data.note ? `Note: "${data.note}"` : '';
+
+            // Update mood level bars
+            document.getElementById('happiness-level').style.height = `${data.happiness * 10}%`;
+            document.getElementById('sadness-level').style.height = `${data.sadness * 10}%`;
+            document.getElementById('anger-level').style.height = `${data.anger * 10}%`;
+            document.getElementById('calmness-level').style.height = `${data.calmness * 10}%`;
+
+            // Update hours bars
+            const workBar = document.getElementById('work-bar');
+            const sleepBar = document.getElementById('sleep-bar');
+            workBar.style.height = `${(data.work / 24) * 100}%`;
+            workBar.textContent = data.work;
+            sleepBar.style.height = `${(data.sleep / 24) * 100}%`;
+            sleepBar.textContent = data.sleep;
+        }
+    });
+
+    // Fetch mood history for progress tracking
+    const userDocRef = doc(db, 'users', user.uid);
+    getDoc(userDocRef).then(docSnap => {
+        if (docSnap.exists()) {
+            const history = docSnap.data().moodHistory || {};
+            const daysInMonth = new Date(year, today.getMonth() + 1, 0).getDate();
+            
+            let trackedDays = 0;
+            for (const dateKey in history) {
+                if (dateKey.startsWith(`${year}-${month}`)) {
+                    trackedDays++;
+                }
+            }
+
+            const progressPercentage = Math.round((trackedDays / daysInMonth) * 100);
+            
+            const progressPie = document.getElementById('progress-pie');
+            const progressText = document.getElementById('progress-text');
+
+            if (progressPie && progressText) {
+                progressText.textContent = `${progressPercentage}%`;
+                progressPie.style.background = `conic-gradient(#A5D6A7 ${progressPercentage}%, #E0E0E0 0%)`;
+            }
+        }
+    });
 }
 
 function setupLogMoodPage() {
@@ -218,7 +280,7 @@ function setupLogMoodPage() {
     
         const user = auth.currentUser;
         if (user) {
-            db.collection('users').doc(user.uid).collection('mood_logs').doc(todayKey).set(moodData)
+            setDoc(doc(db, 'users', user.uid, 'mood_logs', todayKey), moodData)
                 .then(() => {
                     Object.values(sliders).forEach(s => s.disabled = true);
                     createSeedButton.disabled = true;
@@ -288,9 +350,9 @@ function setupLogMoodPage() {
                 const day = String(today.getDate()).padStart(2, '0');
                 const todayKey = `${year}-${month}-${day}`;
     
-                db.collection('users').doc(user.uid).collection('mood_logs').doc(todayKey).get().then((doc) => {
-                    if (doc.exists) {
-                        const dataToLoad = doc.data();
+                getDoc(doc(db, 'users', user.uid, 'mood_logs', todayKey)).then((docSnap) => {
+                    if (docSnap.exists()) {
+                        const dataToLoad = docSnap.data();
                         Object.values(sliders).forEach(s => s.disabled = true);
                         createSeedButton.disabled = true;
                         notesArea.disabled = true;
@@ -318,6 +380,7 @@ function setupLogMoodPage() {
         });
     }
 
+    loadState();
 
     
 
@@ -328,7 +391,7 @@ function setupSimulatorPage() {
     const shovelBtn = document.getElementById('shovel-tree');
     const mound = document.getElementById('mound');
     const treeContainer = document.getElementById('tree-container');
-    const progressBar = document.getElementById('growth-progress');
+    const progressBar = document.getElementById('growth-progress'); // This line is duplicated, removing one.
     const notificationOverlay = document.getElementById('notification-overlay');
     const redirectBtn = document.getElementById('redirect-log-mood');
     const progressNotification = document.getElementById('progress-text-notification');

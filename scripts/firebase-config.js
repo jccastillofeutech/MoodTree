@@ -1,17 +1,19 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCeSnm2Dkevz8nto49EOG-y7jOOMHlAnoM",
-  authDomain: "moodtree-bdc88.firebaseapp.com",
-  projectId: "moodtree-bdc8d",
-  storageBucket: "moodtree-bdc8d.appspot.com",
-  messagingSenderId: "721781735896",
-  appId: "1:721781735896:web:279be28f1166f7cb6732ad",
-  measurementId: "G-DLFEQ9SDMJ"
+  apiKey: "AIzaSyBN2Pnvi7518-92DiH2hCFVG8Z8Cb6OQDY",
+  authDomain: "moodtree-f0f56.firebaseapp.com",
+  projectId: "moodtree-f0f56",
+  storageBucket: "moodtree-f0f56.appspot.com",
+  messagingSenderId: "200215095780",
+  appId: "1:200215095780:web:79c4cab45a86931ae4bff1",
+  measurementId: "G-X4HY9T73T5"
 };
 
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 export const auth = getAuth(app);
 export const db = getFirestore(app);

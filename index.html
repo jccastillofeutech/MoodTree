@@ -458,6 +458,26 @@
                 header.classList.remove('scrolled');
             }
         });
+
+        // Give the buttons a shared class to make them easy to select
+        document.querySelectorAll('a[href="auth-pages/login.html"]').forEach(el => {
+            el.classList.add('cta-button');
+        });
+    </script>
+
+    <script type="module">
+        import { auth } from './scripts/firebase-config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const ctaButtons = document.querySelectorAll('.cta-button');
+                ctaButtons.forEach(button => {
+                    button.textContent = 'GO TO DASHBOARD';
+                    button.href = 'user-dashboard/user-dashboard.html';
+                });
+            }
+        });
     </script>
 </body>
 </html>
