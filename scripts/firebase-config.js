@@ -14,6 +14,12 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+try {
+  const analytics = getAnalytics(app);
+} catch (e) {
+  console.warn("Firebase Analytics was blocked by the client (e.g., an ad blocker) and could not be initialized.");
+}
+
 export const auth = getAuth(app);
 export const db = getFirestore(app);
